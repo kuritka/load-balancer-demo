@@ -1,0 +1,53 @@
+html, body, svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    margin: 0;
+}
+
+.big {
+    visibility: visible;
+}
+
+.small {
+    visibility: hidden;
+}
+
+/*
+    http://nerd.vasilis.nl/min-aspect-ratio-mean-look-like/
+*/
+/*
+    @media(min-aspect-ratio: 100/80) {
+    */
+@media (max-width : 300px){
+    .small {
+        visibility: visible;
+    }
+    .big {
+        visibility: hidden;
+    }
+}
+@media (max-height : 200px){
+    .small {
+        visibility: visible;
+    }
+    .big {
+        visibility: hidden;
+    }
+}
+
+
+
+footer {
+    background: rgba(15, 15, 15, 0.5);
+    color: whitesmoke;
+    font-family: Wellfleet ;
+    font-size: 1.5em;
+    position: absolute;
+    bottom: 0.5em;
+    right: 0.2em;
+    padding: .5em;
+}
+
+
+
