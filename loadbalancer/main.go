@@ -1,4 +1,4 @@
-package main
+package loadbalancer
 
 /*
 L7 Load balancer implementation.
@@ -57,7 +57,7 @@ func init() {
 	http.DefaultClient = &http.Client{Transport: &transport}
 }
 
-func main() {
+func Run(lbPort, discoPort string) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		doneCh := make(chan struct{})
 		requestCh <- &webRequest{r: r, w: w, doneCh: doneCh}
@@ -70,10 +70,10 @@ func main() {
 
 	//load balancing
 	//if nil DefaultServerMux is used and DSM gets registered handler
-	go http.ListenAndServeTLS(":2000", lbcert, lbkey, nil)
+	go http.ListenAndServeTLS(lbPort, lbcert, lbkey, nil)
 
 	//service discovery
-	go http.ListenAndServeTLS(":2001", discocert, discokey, new(discoHandler))
+	go http.ListenAndServeTLS(discoPort, discocert, discokey, new(discoHandler))
 
 	log.Println("server started, press <ENTER> to exit")
 	_, _ = fmt.Scanln()
