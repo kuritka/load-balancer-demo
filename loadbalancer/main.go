@@ -20,10 +20,10 @@ import (
 )
 
 const (
-	lbkey     = "/etc/webhook/certs/key.pem"
-	lbcert    = "/etc/webhook/certs/cert.pem"
-	discokey  = "/etc/webhook/certs/key.pem"
-	discocert = "/etc/webhook/certs/cert.pem"
+	lbkey     = "/etc/lb/certs/key.pem"
+	lbcert    = "/etc/lb/certs/cert.pem"
+	discokey  = "/etc/lb/certs/key.pem"
+	discocert = "/etc/lb/certs/cert.pem"
 )
 
 type webRequest struct {

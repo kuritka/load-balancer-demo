@@ -1,0 +1,76 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: lb-configmap
+  namespace: lb-system
+data:
+  lb.port: ":2000"
+  lb.disco_port: ":2001"
+  appserver.disco_url: "https://loadbalancer:2001"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadbalancer
+  namespace: lb-system
+  labels:
+    app: lb
+  annotations:
+    buildVersion: ${buildVersion}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: lb
+  template:
+    metadata:
+      labels:
+        app: lb
+    spec:
+      #pod must be running
+      restartPolicy: Always
+      containers:
+        - name: lb
+          image: acronhosbx.azurecr.io/lb:${tag}
+          args: [lb]
+          #imagePullPolicy: Always: the image is pulled every time the pod is started.
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: lb
+              mountPath: /etc/lb/certs
+              readOnly: true
+          env:
+            -  name: LB_PORT
+               valueFrom:
+                 configMapKeyRef:
+                   name: lb-configmap
+                   key: lb.port
+            -  name: DISCO_PORT
+               valueFrom:
+                 configMapKeyRef:
+                   name: lb-configmap
+                   key: lb.disco_port
+            -  name: LB_DISCO_URL
+               valueFrom:
+                 configMapKeyRef:
+                   name: lb-configmap
+                   key: appserver.disco_url
+      volumes:
+        - name: lb
+          secret:
+            secretName: lb-certs
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: lb-svc
+  namespace: lb-system
+  labels:
+    app: lb
+spec:
+  ports:
+    - port: 443
+      targetPort: 2000
+      name: https
+  selector:
+    app: lb
