@@ -6,7 +6,11 @@ metadata:
 data:
   lb.port: ":2000"
   lb.disco_port: ":2001"
-  appserver.disco_url: "https://loadbalancer:2001"
+  #export LB_DISCO_URL="https://127.0.0.1:2001"
+  # kubectl run -it --rm nwutils --restart=Never --image=nbrown/nwutils -- bin/sh
+  # nslookup lb-svc
+  # I need service just to get endpoint
+  appserver.disco_url: "https://lb-svc.lb-system.svc.cluster.local:2001"
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -60,6 +64,48 @@ spec:
           secret:
             secretName: lb-certs
 ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: appserver
+  namespace: lb-system
+  labels:
+    app: appserver
+  annotations:
+    buildVersion: ${buildVersion}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: appserver
+  template:
+    metadata:
+      labels:
+        app: appserver
+    spec:
+      #pod must be running
+      restartPolicy: Always
+      containers:
+        - name: appserver
+          image: acronhosbx.azurecr.io/lb:${tag}
+          args: [appserver]
+          #imagePullPolicy: Always: the image is pulled every time the pod is started.
+          imagePullPolicy: Always
+          volumeMounts:
+            - name: lb
+              mountPath: /etc/lb/certs
+              readOnly: true
+          env:
+            -  name: LB_DISCO_URL
+               valueFrom:
+                 configMapKeyRef:
+                   name: lb-configmap
+                   key: appserver.disco_url
+      volumes:
+        - name: lb
+          secret:
+            secretName: lb-certs
+---
 apiVersion: v1
 kind: Service
 metadata:
@@ -74,3 +120,4 @@ spec:
       name: https
   selector:
     app: lb
+  type: LoadBalancer

@@ -24,6 +24,8 @@ WORKDIR /app
 #multistage containers - copying from build stage /build to /app
 COPY --from=build-stage /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=build-stage /build/main /app/main
+COPY --from=build-stage /build/server/public /app/server/public
+COPY --from=build-stage /build/server/templates /app/server/templates
 
 
 #scratch is missing bash, so cannot call useradd command. That's we created user at build-stage, now we copy him to scratch
@@ -32,5 +34,16 @@ COPY --from=build-stage /etc/passwd /etc/passwd
 USER lb
 
 ENTRYPOINT ["./main"]
+
+
+#delete all <none> images
+#sudo docker rmi $(sudo docker images | grep "^<none>" | awk '{ print $3 }')
+#docker container prune
+#docker image prune
+#docker network prune
+#docker volume prune
+# https://www.projectatomic.io/blog/2015/07/what-are-docker-none-none-images/
+# docker rmi $(docker images -f "dangling=true" -q)
+
 
 

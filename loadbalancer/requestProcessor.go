@@ -50,7 +50,7 @@ func processRequests() {
 			}
 
 		case host := <-unregisterCh:
-			println("register: " + host)
+			println("unregistered: " + host)
 			for i := len(appServers) - 1; i >= 0; i-- {
 				//removing element on the specified position.
 				if appServers[i] == host {
@@ -60,7 +60,7 @@ func processRequests() {
 			}
 
 		case <-heartBeatCh:
-			println("heartbeat")
+			//println("heartbeat")
 			//copying slice
 			servers := appServers[:]
 			go func(servers []string) {

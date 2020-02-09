@@ -60,6 +60,8 @@ EOF
 
     docker push acronhosbx.azurecr.io/lb:"${tag}"
 
+    #remove dangling images https://www.projectatomic.io/blog/2015/07/what-are-docker-none-none-images/
+    docker rmi $(docker images -f "dangling=true" -q)
 }
 
 
@@ -81,7 +83,8 @@ EOF
 
     # in order to download the newest docker from repo, forcing pod to restart and  do not take care if something is deployed or not
     #ensures that lb server will be redeployed by each cicd
-    kubectl scale deployment lb-deployment -n lb-system `` --replicas=0 2>/dev/null || true
+    kubectl scale deployment loadbalancer -n lb-system `` --replicas=0 2>/dev/null || true
+    kubectl scale deployment appserver -n lb-system `` --replicas=0 2>/dev/null || true
 
 cat <<EOF | kubectl apply -f -
 `echo "$bind"`

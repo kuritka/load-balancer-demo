@@ -80,6 +80,10 @@ subjectAltName = @alt_names
 DNS.1 = ${service}
 DNS.2 = ${service}.${namespace}
 DNS.3 = ${service}.${namespace}.svc
+DNS.4 = localhost
+
+IP.1 = 127.0.0.1
+IP.2 = ::1
 EOF
 
 openssl genrsa -out ${tmpdir}/server-key.pem 2048
@@ -127,6 +131,11 @@ if [[ ${serverCert} == '' ]]; then
     exit 1
 fi
 echo ${serverCert} | openssl base64 -d -A -out ${tmpdir}/server-cert.pem
+
+# appserverkey     = "/etc/lb/certs/key.pem"
+#	appservercert    = "/etc/lb/certs/cert.pem"
+#sudo cp ${tmpdir}/server-key.pem /etc/lb/certs/key.pem
+#sudo cp ${tmpdir}/server-cert.pem /etc/lb/certs/cert.pem
 
 
 # create the secret with CA cert and server cert/key
