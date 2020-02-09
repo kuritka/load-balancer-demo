@@ -74,7 +74,7 @@ metadata:
   annotations:
     buildVersion: ${buildVersion}
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: appserver
@@ -115,9 +115,12 @@ metadata:
     app: lb
 spec:
   ports:
-    - port: 443
+    - port: 2000
       targetPort: 2000
       name: https
+    - port: 2001
+      targetPort: 2001
+      name: register
   selector:
     app: lb
   type: LoadBalancer
