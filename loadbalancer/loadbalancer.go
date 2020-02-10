@@ -50,7 +50,6 @@ var (
 			InsecureSkipVerify: true,
 		},
 	}
-
 )
 
 func init() {

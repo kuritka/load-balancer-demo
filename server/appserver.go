@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	appserverkey     = "/etc/lb/certs/key.pem"
-	appservercert    = "/etc/lb/certs/cert.pem"
+	appserverkey  = "/etc/lb/certs/key.pem"
+	appservercert = "/etc/lb/certs/cert.pem"
 )
 
 var (
@@ -29,7 +29,6 @@ func init() {
 	httpclient = &http.Client{Transport: &transport}
 }
 
-
 func populateTemplates() *template.Template {
 	result := template.New("templates")
 	const basePath = "server/templates"
@@ -46,7 +45,7 @@ func Run(lbDiscoUrl string) {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		//remove slash
 		requestedFile := r.URL.Path[1:]
-		if requestedFile =="" {
+		if requestedFile == "" {
 			requestedFile = "index"
 		}
 		t := templates.Lookup(requestedFile + ".html")
@@ -68,14 +67,13 @@ func Run(lbDiscoUrl string) {
 	http.Handle("/img/", http.FileServer(http.Dir("server/public")))
 	http.Handle("/css/", http.FileServer(http.Dir("server/public")))
 
-
-	go func(){
+	go func() {
 
 		time.Sleep(5 * time.Second)
-		fmt.Println("registering; loadbalancer url: " +*loadbalancerURL +"/register?port=3000" )
+		fmt.Println("registering; loadbalancer url: " + *loadbalancerURL + "/register?port=3000")
 
 		_, err := httpclient.Get(*loadbalancerURL + "/register?port=3000")
-		if err!= nil {
+		if err != nil {
 			fmt.Println(err)
 		}
 

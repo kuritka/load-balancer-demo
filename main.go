@@ -5,5 +5,3 @@ import "lb/cmd"
 func main() {
 	cmd.Execute()
 }
-
-
