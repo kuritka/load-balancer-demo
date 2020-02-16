@@ -2,7 +2,7 @@ package cmd
 
 import (
 	"github.com/spf13/cobra"
-	"lb/loadbalancer"
+	"lb/services/loadbalancer"
 
 	"lb/common/env"
 )

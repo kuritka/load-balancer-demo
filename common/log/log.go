@@ -21,8 +21,8 @@ func init() {
 	zerolog.SetGlobalLevel(zerolog.DebugLevel)
 	l := zerolog.New(os.Stdout).
 		With().
-		Timestamp().
-		Caller().
+		//	Timestamp().
+		//	Caller().
 		Logger()
 
 	Log = &l
