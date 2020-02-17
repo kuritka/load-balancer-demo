@@ -1,5 +1,30 @@
 package cache
 
+/*
+   Logger configured
+   Logger configured
+   cache started
+   {"level":"info","message":"Searching cache for home"}
+   {"level":"info","message":"reading from cache: home not found"}
+   {"level":"info","message":"saving home to cache"}
+   Saving cache entry with key 'home' for maxage=86400000000000 seconds{"level":"info","message":" saved  home"}
+   {"level":"info","message":"Searching cache for styles.css"}
+   {"level":"info","message":"reading from cache: styles.css not found"}
+   {"level":"info","message":"Searching cache for home"}
+   {"level":"info","message":"reading from cache: home success"}
+   {"level":"info","message":"Searching cache for styles.css"}
+   {"level":"info","message":"reading from cache: styles.css not found"}
+   {"level":"info","message":"Searching cache for home"}
+   {"level":"info","message":"reading from cache: home success"}
+   {"level":"info","message":"Searching cache for styles.css"}
+   {"level":"info","message":"reading from cache: styles.css not found"}
+   purging cache
+   {"level":"info","message":"Searching cache for home"}
+   {"level":"info","message":"reading from cache: home success"}
+   {"level":"info","message":"Searching cache for styles.css"}
+   {"level":"info","message":"reading from cache: styles.css not found"}
+*/
+
 import (
 	"fmt"
 	"io/ioutil"
@@ -27,7 +52,7 @@ var (
 	mutex        = sync.RWMutex{}
 	maxAgeRegexp = regexp.MustCompile(`maxage=(\d+)`)
 	//makes sense  60 sec in PROD because we have to lock cache to inspect all entries
-	tickCh = time.Tick(5 * time.Second)
+	tickCh = time.Tick(5 * time.Minute)
 )
 
 type (
@@ -91,6 +116,7 @@ func saveToCache(w http.ResponseWriter, r *http.Request) {
 	defer mutex.Unlock()
 
 	key := r.URL.Query().Get(cacheKey)
+	logger.Info().Msgf("saving %s to cache", key)
 	cacheHeader := r.Header.Get("cache-control")
 
 	fmt.Printf("Saving cache entry with key '%s' for %s seconds", key, cacheHeader)
@@ -101,8 +127,10 @@ func saveToCache(w http.ResponseWriter, r *http.Request) {
 		dur, _ := strconv.Atoi(matches[1])
 		data, _ := ioutil.ReadAll(r.Body)
 		cache[key] = &cacheEntry{data: data, expiration: time.Now().Add(time.Duration(dur) * time.Second)}
-
+		logger.Info().Msgf(" saved  %s", key)
+		return
 	}
+	logger.Info().Msgf("unable to save %s to cache", key)
 }
 
 func getFromCache(w http.ResponseWriter, r *http.Request) {
@@ -110,13 +138,13 @@ func getFromCache(w http.ResponseWriter, r *http.Request) {
 	defer mutex.RUnlock()
 	key := r.URL.Query().Get(cacheKey)
 
-	fmt.Printf("Searching cahce for %s", key)
+	logger.Info().Msgf("Searching cache for %s", key)
 
 	if entry, ok := cache[key]; ok {
-		fmt.Println("found")
+		logger.Info().Msgf("reading from cache: %s success", key)
 		w.Write(entry.data)
 		return
 	}
 	w.WriteHeader(http.StatusNotFound)
-	fmt.Println("not found")
+	logger.Info().Msgf("reading from cache: %s not found", key)
 }

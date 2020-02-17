@@ -15,8 +15,9 @@ var appServerCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 
 		lbDiscoUrl := env.MustGetStringFlagFromEnv("LB_DISCO_URL")
+		cashServiceUrl := env.MustGetStringFlagFromEnv("CASH_SVC_URL")
 		// "https://127.0.0.1:2001"
-		appserver.Run(lbDiscoUrl)
+		appserver.Run(lbDiscoUrl, cashServiceUrl)
 	},
 }
 

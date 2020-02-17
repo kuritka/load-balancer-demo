@@ -1,10 +1,13 @@
 package appserver
 
 import (
+	"bytes"
 	"crypto/tls"
 	"flag"
 	"fmt"
 	"html/template"
+	"io"
+	"lb/common/log"
 	"net/http"
 	"time"
 )
@@ -23,10 +26,14 @@ var (
 		},
 	}
 	httpclient *http.Client
+	cashUrl    string
+	cacheCh    chan struct{}
+	logger     = log.Log
 )
 
 func init() {
 	httpclient = &http.Client{Transport: &transport}
+	cacheCh = make(chan struct{})
 }
 
 func populateTemplates() *template.Template {
@@ -36,9 +43,12 @@ func populateTemplates() *template.Template {
 	return result
 }
 
-func Run(lbDiscoUrl string) {
+//TODO: refactor everything
+func Run(lbDiscoUrl string, cashServiceUrl string) {
 
 	var loadbalancerURL = flag.String("loadbalancer", lbDiscoUrl, "Address of the load balancer")
+
+	cashUrl = cashServiceUrl
 
 	fmt.Printf("listening on https://localhost:3000/. Execute  template home.html by https://localhost:3000/home \n")
 	templates := populateTemplates()
@@ -48,15 +58,32 @@ func Run(lbDiscoUrl string) {
 		if requestedFile == "" {
 			requestedFile = "index"
 		}
+
+		reader, exists := getFromCache(requestedFile)
+		if exists {
+			//w is ResponseWriter , if we have reader, we can simply Copy!!
+			io.Copy(w, reader)
+			_ = reader.Close()
+			return
+		}
+
 		t := templates.Lookup(requestedFile + ".html")
 		if t != nil {
-			err := t.Execute(w, nil)
+			//populate buffer by template
+			b := bytes.Buffer{}
+			err := t.Execute(&b, nil)
 			if err != nil {
 				fmt.Println(err)
 			}
+			data := b.Bytes()
+			w.Write(data)
+			//im using slice of data in order to copy of it data[:]
+			go saveToCache(requestedFile, int64(24*time.Hour), data[:])
+
 		} else {
 			http.NotFound(w, r)
 		}
+		//go invalidateCache(requestedFile)
 	})
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
