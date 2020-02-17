@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"lb/common/log"
+	"lb/common/entity"
+	"lb/services/logaggregator/api"
 	"net/http"
 	"time"
+
+	"lb/common/log"
 )
 
 const (
@@ -100,6 +103,15 @@ func Run(lbDiscoUrl string, cashServiceUrl string) {
 		fmt.Println("registering; loadbalancer url: " + *loadbalancerURL + "/register?port=3000")
 
 		_, err := httpclient.Get(*loadbalancerURL + "/register?port=3000")
+
+		api.WriteEntry(&entity.LogEntry{
+			Level:       entity.LogLevelInfo,
+			Timestamp:   time.Now(),
+			Source:      "load balancer",
+			Destination: "load balancer",
+			Message:     "register load balancer",
+		})
+
 		if err != nil {
 			fmt.Println(err)
 		}
@@ -109,4 +121,12 @@ func Run(lbDiscoUrl string, cashServiceUrl string) {
 	http.ListenAndServeTLS(":3000", appservercert, appserverkey, nil)
 
 	http.Get(*loadbalancerURL + "/unregister?port=3000")
+
+	api.WriteEntry(&entity.LogEntry{
+		Level:       entity.LogLevelInfo,
+		Timestamp:   time.Now(),
+		Source:      "load balancer",
+		Destination: "load balancer",
+		Message:     "unregister load balancer",
+	})
 }
